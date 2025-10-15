@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>📖 Documentation Cabinet Médical</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; margin: 0; padding: 2em; line-height: 1.6; }
+    h1, h2, h3 { color: #2c3e50; }
+    a { color: #007BFF; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { background: #007BFF; padding: 1em; border-radius: 8px; margin-bottom: 2em; }
+    nav a { color: white; margin-right: 1em; }
+    section { margin-bottom: 2em; padding: 1em; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+
+  <h1>📖 Documentation d’utilisation du système de gestion de cabinet médical</h1>
+
+  <nav>
+    <a href="#accueil">🏠 Accueil</a>
+    <a href="#patients">📁 Gestion des patients</a>
+    <a href="#ordonnancier">💊 Ordonnancier</a>
+    <a href="#interconnexion">🔗 Interconnexions</a>
+    <a href="#firebase">☁️ Système Firebase</a>
+  </nav>
+
+  <section id="accueil">
+    <h2>🏠 Accueil.html</h2>
+    <p>Cette page est la porte d'entrée de l'application. Elle propose des boutons vers toutes les sections :</p>
+    <ul>
+      <li>📁 Dossiers patients → <code>patient.html</code></li>
+      <li>📝 Ordonnancier → <code>Ordonnancier.html</code></li>
+      <li>📄 Certificats médicaux → <code>Certificat médical.html</code></li>
+      <li>💰 Facturation → <code>impo.html</code></li>
+      <li>🆘 Aide → <code>Aide.html</code></li>
+    </ul>
+  </section>
+
+  <section id="patients">
+    <h2>📁 patient.html – Gestion des patients</h2>
+    <p>Cette page permet :</p>
+    <ul>
+      <li>d’ajouter, modifier ou supprimer des fiches patient</li>
+      <li>de gérer l’historique des consultations (motif, poids, tension, température, etc.)</li>
+      <li>d’accéder à des services complémentaires :
+        <ul>
+          <li>📝 Ordonnancier</li>
+          <li>📄 Certificat médical</li>
+          <li>💰 Facturation</li>
+        </ul>
+      </li>
+      <li>de visualiser l’historique des ordonnances intégrées depuis <strong>Ordonnancier.html</strong></li>
+    </ul>
+    <p>🔄 Les données patients sont chargées depuis Firebase Firestore dès l'ouverture.</p>
+  </section>
+
+  <section id="ordonnancier">
+    <h2>💊 Ordonnancier.html</h2>
+    <p>Permet la création d’ordonnances à partir :</p>
+    <ul>
+      <li>des informations du patient (nom, prénom, date de naissance, sexe, âge)</li>
+      <li>d’une base de médicaments intégrée avec recherche</li>
+      <li>de la possibilité d'imprimer ou télécharger l'ordonnance</li>
+    </ul>
+    <p>⚙️ Lorsqu’on accède à l’ordonnancier via un bouton de <code>patient.html</code>, les champs du patient sont pré-remplis.</p>
+    <p>💾 L’ordonnance est ensuite enregistrée dans Firebase et ajoutée à la fiche du patient.</p>
+  </section>
+
+  <section id="interconnexion">
+    <h2>🔗 Interconnexion entre les pages</h2>
+    <ul>
+      <li><strong>Accueil.html</strong> → navigation vers les autres sections via des liens simples</li>
+      <li><strong>patient.html</strong> :
+        <ul>
+          <li>Ouvre <code>Ordonnancier.html</code> avec les données du patient</li>
+          <li>Envoie les ordonnances créées vers Firestore et les lie au bon patient</li>
+        </ul>
+      </li>
+      <li><strong>Ordonnancier.html</strong> :
+        <ul>
+          <li>Utilise Firebase pour stocker les ordonnances</li>
+          <li>Peut être ouvert manuellement ou depuis un patient</li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <section id="firebase">
+    <h2>☁️ Firebase Firestore</h2>
+    <p>Le système utilise <strong>Firebase Firestore</strong> pour stocker les données à distance et les rendre accessibles depuis n’importe quel appareil.</p>
+    <h3>🔒 Sécurité</h3>
+    <ul>
+      <li>Connexion via la configuration Firebase dans chaque page</li>
+      <li>Pas de gestion d’utilisateurs pour l’instant (accès libre)</li>
+    </ul>
+    <h3>📂 Collections utilisées :</h3>
+    <ul>
+      <li><strong>patients</strong> : contient les dossiers médicaux (identité, consultations, ordonnances…)</li>
+    </ul>
+    <h3>🔁 Synchronisation</h3>
+    <ul>
+      <li>Chargement initial : <code>db.collection('patients').get()</code></li>
+      <li>Ajouts et modifications : <code>db.collection('patients').doc(id).set({...})</code></li>
+      <li>Ordonnances : intégrées dans la fiche patient comme liste <code>ordonnances: [...]</code></li>
+    </ul>
+  </section>
+
+</body>
+</html>

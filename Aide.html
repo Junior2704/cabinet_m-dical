@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🆘Aide</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background: #f5f7fa;
+    color: #333;
+  }
+  .container {
+    display: flex;
+    min-height: 100vh;
+  }
+  nav {
+    position: sticky;
+    top: 0;
+    background: #2c3e50;
+    color: #ecf0f1;
+    width: 280px;
+    padding: 20px 15px;
+    box-shadow: 2px 0 6px rgb(0 0 0 / 0.1);
+  }
+  nav h2 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 6px;
+  }
+  nav ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  nav li {
+    margin-bottom: 12px;
+  }
+  nav a {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  nav a:hover,
+  nav a:focus {
+    color: #3498db;
+  }
+
+  main {
+    flex-grow: 1;
+    padding: 30px 40px;
+    max-width: 900px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #34495e;
+  }
+
+  h3 {
+    margin-top: 40px;
+    margin-bottom: 12px;
+    color: #2980b9;
+    border-bottom: 2px solid #2980b9;
+    padding-bottom: 6px;
+  }
+  p {
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  ul.inner-list {
+    margin-top: 8px;
+    margin-left: 20px;
+  }
+  ul.inner-list li {
+    margin-bottom: 6px;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    .container {
+      flex-direction: column;
+    }
+    nav {
+      width: 100%;
+      position: relative;
+      box-shadow: none;
+      padding: 15px;
+    }
+    main {
+      padding: 20px 15px;
+    }
+  }
+  .button {
+				display: inline-block;
+				margin: 20px;
+				padding: 12px 25px;
+				font-size: 16px;
+				color: white;
+				background-color: #28a745;
+				border: none;
+				border-radius: 6px;
+				text-decoration: none;
+				transition: background-color 0.3s;
+				cursor: pointer;
+			}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav aria-label="Sommaire du guide">
+    <h2>Sommaire</h2>
+    <ul>
+	<a href="Accueil.html" class="button">↩️ Retour à l'accueil</a>
+
+      <li><a href="#accueil">Accueil</a></li>
+      <li><a href="#dossier-patient">I/ DOSSIER PATIENT</a></li>
+      <li><a href="#ordonnancier">II/ ORDONNANCIER</a></li>
+      <li><a href="#certificat-medical">III/ Certificat médical</a></li>
+      <li><a href="#facturation">III/ Facturation</a></li>
+      <li><a href="#consultation">IV/ Consultation</a></li>
+      <li><a href="#modification-codes">V/ Modification des codes</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>Bienvenue sur ce programme de gestion de cabinet médical </h1>
+    <section id="accueil">
+      <p>🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳🥳</p>
+    </section>
+
+    <section id="dossier-patient">
+      <h3>I/ DOSSIER PATIENT</h3>
+      <p>appuie sur « dossiers patients »</p>
+      <p>Ici, tu as tout tes patients sauvegardés localement, tu peux en ajouter,…</p>
+      <p>Si tu double-clique sur l’un d’entre eux, ça t’ouvre sa page dédiée où tu peux voir des infos complémentaires, modifier,…</p>
+      <p>Tu peux appuyer sur « ordonnances » ou « certificat médical » pour ouvrir l’ordonnancier ou l’éditeur de certificat médical</p>
+      <p>Si tu facture, cela simule un paiement</p>
+      <p>Si tu fait une consultation, cela l’enregistrera dans le dossier patient</p>
+    </section>
+
+    <section id="ordonnancier">
+      <h3>II/ ORDONNANCIER</h3>
+      <p>Si tu viens du fichier patient, tout est déjà prérempli, sinon, tu remplis les infos demandées</p>
+      <p>Si l’âge ne se recalcule pas, retape le jour manuellement</p>
+      <p>Utilise le bouton réinitialiser pour vider les champs</p>
+      <p>Ensuite, tu recherches tes médicaments, tu entres la posologie (ex : 2cp 3x par jour) puis la durée (ex : 7)</p>
+      <p>Tu vas tout en bas (pour faire disparaitre la liste de médicaments, tu tapes dans la barre de recherche qq chose comme &lt;, /, *, …)</p>
+      <p>Tu cliques sur valider la prescription et sur télécharger (pour avoir un joli document)</p>
+    </section>
+
+    <section id="certificat-medical">
+      <h3>III/ Certificat médical</h3>
+      <p>C’est pareil que pour l’ordonnancier, soit tu remplis les champs soit ils le sont déjà si tu le fais depuis le fiche patient.</p>
+      <p>Coches tout ce que tu veux</p>
+      <p>Et imprime ! (il faudra compléter les jours à la main)</p>
+    </section>
+
+    <section id="facturation">
+      <h3>III/ Facturation</h3>
+      <p>Simple simulation de paiement. Pour modifier tes prestations, tu les ajoutes/ les supprimes sous ce format :</p>
+      <pre style="background:#eee;padding:8px;border-radius:4px;overflow-x:auto;">
+&lt;option value="Vaccination" data-price="25"&gt;Vaccination - 25€&lt;/option&gt;
+      </pre>
+      <p>À la ligne 194 du document (facturation.html)</p>
+      <p>Pour la procédure de modification des codes, cf plus bas</p>
+    </section>
+
+    <section id="consultation">
+      <h3>IV/ Consultation</h3>
+      <p>Pour modifier les champs, rdv ligne 308 de patient.html</p>
+      <p>Pour la procédure de modification des codes, cf plus bas</p>
+    </section>
+
+    <section id="modification-codes">
+      <h3>V/ Modification des codes</h3>
+      <p>Pour modifier un code, il te faut une application comme notepad++ ou un éditeur en ligne</p>
+      <p>Pour notepad++ ou une autre application sur ordi (pas en ligne), tu cliques-droit sur le fichier</p>
+      <p>Pour modifier ton nom et/ou ta spécialité, rdv :</p>
+      <ul class="inner-list">
+        <li>L 16237/16238 du code ordonnancier.html</li>
+        <li>L 115 du code certificatmédical.html</li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+</body>
+</html>

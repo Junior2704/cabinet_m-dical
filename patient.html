@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>📁 Gestion Patients</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 1em; background: #f8f9fa; }
+    h1 { text-align: center; }
+    #app { max-width: 1100px; margin: auto; display: flex; gap: 20px; }
+    #listeView { flex: 1; }
+    #ficheView {
+	cursor: pointer;
+  display: none; 
+  flex: 2;
+  background: white;
+  padding: 1em;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  flex-direction: row;
+  gap: 30px;
+}
+#ficheView.show {
+  display: flex; 
+}
+
+    .fiche-colonne {
+      flex: 2;
+    }
+    .historique-ordonnances {
+      flex: 1;
+      background: #f1f1f1;
+      padding: 1em;
+      border-radius: 8px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .btn { text-decoration: none;padding: 0.5em 1em; margin: 0.5em 0.5em 0 0; border: none; border-radius: 5px; cursor: pointer; }
+    .btn-blue { background: #0d6efd; color: white; }
+    .btn-green { background: #198754; color: white; }
+    .btn-yellow { background: #ffc107; color: black; }
+    .btn-red { background: #dc3545; color: white; }
+    input, select, textarea {
+      width: 100%; padding: 0.5em; margin: 0.3em 0;
+      box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;
+    }
+    ul { list-style: none; padding: 0; }
+    li { padding: 0.5em; border-bottom: 1px solid #ddd; cursor: pointer; }
+    li:hover { background: #e9ecef; }
+    .hidden { display: none; }
+	.fiche-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.fiche-colonne {
+  flex: 2;
+}
+.historique-ordonnances {
+  flex: 1;
+  background: #f1f1f1;
+  padding: 1em;
+  border-radius: 8px;
+  max-height: 600px;
+  overflow-y: auto;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+
+}
+.fiche-colonne, .historique-ordonnances {
+  width: 100%;
+  background: white;
+  padding: 1em;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.fiche-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+}
+
+.fiche-wrapper > * {
+  width: 100%; 
+  box-sizing: border-box;
+}
+
+
+.card {
+  background: white;
+  padding: 1.5em;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+
+.card h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5em;
+}
+
+.form-group {
+  margin-bottom: 1em;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+
+button.btn {
+  margin-top: 1em;
+}
+	
+
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="listeView">
+      <h1>📁 Gestion des Patients</h1>
+      <a href="Accueil.html" class="btn btn-green">↩️ Retour à l'accueil</a>
+      <button class="btn btn-blue" onclick="ajouterPatient()">➕ Ajouter Patient</button>
+	  <br><br>
+      <input id="searchBar" type="text" placeholder="🔍 Rechercher..." oninput="afficherListe()" />
+      <ul id="listePatients"></ul>
+    </div>
+    <div id="ficheView" class="hidden"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKp5-7NNy0Gyl0tNbDgD-BxucYdg8ArWo",
+    authDomain: "urgences-a8ed4.firebaseapp.com",
+    projectId: "urgences-a8ed4",
+    storageBucket: "urgences-a8ed4.appspot.com",  
+    messagingSenderId: "392921498200",
+    appId: "1:392921498200:web:7ccce767332c67c697c02d",
+    measurementId: "G-C74MK2KYDL"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let patients = [];
+    let indexActuel = null;
+
+    async function chargerPatients() {
+      const snapshot = await db.collection('patients').get();
+      patients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      afficherListe();
+    }
+
+    function afficherListe() {
+      const filtre = document.getElementById("searchBar").value.toLowerCase();
+      const ul = document.getElementById("listePatients");
+      ul.innerHTML = "";
+      patients.forEach((p, i) => {
+        if ((p.nom + " " + p.prenom).toLowerCase().includes(filtre)) {
+          const li = document.createElement("li");
+          li.textContent = `${p.nom} ${p.prenom}`;
+          li.ondblclick = () => ouvrirFiche(i);
+          ul.appendChild(li);
+        }
+      });
+    }
+
+    function formatDateFR(date) {
+      if (!date) return "-";
+      const d = new Date(date);
+      return isNaN(d) ? "-" : d.toLocaleDateString("fr-FR");
+    }
+
+    function calculerAge(dateNaissance) {
+      if (!dateNaissance) return "-";
+      const today = new Date();
+      const birth = new Date(dateNaissance);
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      return age >= 0 ? age : "-";
+    }
+
+    function genererHistoriqueOrdonnances(ordonnances) {
+
+      if (!Array.isArray(ordonnances) || ordonnances.length === 0) return "<em>Aucune ordonnance enregistrée.</em>";
+
+      return `
+        <h3>📄 Historique des ordonnances</h3>
+        <ul>
+          ${ordonnances.map(o => `
+            <li>
+              <strong>${formatDateFR(o.date)}</strong><br>
+              ${Array.isArray(o.prescription) ? o.prescription.map(m =>
+                `• <em>${m.medicament}</em> : ${m.posology} (${m.duration} jours)`
+              ).join("<br>") : "⚠️ Données incomplètes"}
+            </li>
+          `).join("<hr>")}
+        </ul>
+      `;
+    }
+
+    function ouvrirFiche(i) {
+  indexActuel = i;
+  enEdition = false;
+  indexConsultationEnCours = null;
+  const p = patients[i];
+
+  const consultations = (p.consultations || []).map((c, ci) => `
+    <li>
+      <strong>${c.date}</strong><br>
+      <em>${c.motif}</em><br>
+      Poids: ${c.poids || "-"}, Taille: ${c.taille || "-"}, 
+      Tension: ${c.tension || "-"}, Temp: ${c.temperature || "-"}<br>
+      Observations: ${c.observations || "-"}<br>
+      <button class="btn btn-yellow" onclick="modifierConsultation(${ci})">✏️ Modifier</button>
+      <button class="btn btn-red" onclick="supprimerConsultation(${ci})">🗑 Supprimer</button>
+    </li>
+  `).join("");
+
+  const ordonnancesHTML = genererHistoriqueOrdonnances(p.ordonnances || []);
+
+  document.getElementById("listeView").classList.add("hidden");
+  const div = document.getElementById("ficheView");
+  div.classList.remove("hidden");
+div.classList.add("show");
+
+  div.innerHTML = `
+    <div class="fiche-wrapper">
+      <div class="fiche-colonne">
+        <h2>${p.nom} ${p.prenom}</h2>
+        <p><strong>Âge :</strong> ${calculerAge(p.dateNaissance)}</p>
+        <p><strong>Date de naissance :</strong> ${formatDateFR(p.dateNaissance)}</p>
+        <p><strong>Sexe :</strong> ${p.sexe || "-"}</p>
+        <p><strong>Téléphone :</strong> ${p.telephone || "-"}</p>
+		<p><strong>Email :</strong> ${p.email || "-"}</p>
+        <p><strong>Adresse :</strong> ${p.adresse || "-"}</p>
+        <p><strong>Remarques :</strong> ${p.remarques || "-"}</p>
+        <button class="btn btn-blue" onclick="retourListe()">↩️ Retour</button>
+        <button class="btn btn-yellow" onclick="activerEdition()">✏️ Modifier</button>
+        <button class="btn btn-red" onclick="supprimerPatient()">🗑 Supprimer</button>
+        <br><br>
+        <button class="btn btn-green" onclick="ouvrirConsultation()">🩺 Nouvelle Consultation</button>
+        <button class="btn btn-green" onclick="ouvrirOrdonnancier()">📝 Ordonnancier</button>
+        <button class="btn btn-green" onclick="ouvrirCertificat()">📄 Certificat Médical</button>
+        <button class="btn btn-green" onclick="ouvrirFacturation()">💰 Facturer</button>
+
+<h3>🩺 Historique des consultations</h3>
+<ul>
+  ${consultations.length > 0 ? consultations : "<em>Aucune consultation enregistrée.</em>"}
+</ul>
+      </div>
+      <div class="historique-ordonnances">
+        ${ordonnancesHTML}
+      </div>
+    </div>
+  `;
+}
+
+
+    function retourListe() {
+  indexActuel = null;
+  enEdition = false;
+  indexConsultationEnCours = null;
+
+  const fiche = document.getElementById("ficheView");
+  fiche.innerHTML = ""; // Nettoie tout le contenu
+  fiche.classList.add("hidden");
+fiche.classList.remove("show");
+
+
+  document.getElementById("listeView").classList.remove("hidden");
+  afficherListe();
+}
+
+function ajouterPatient() {
+      patients.push({
+  nom: "",
+  prenom: "",
+  dateNaissance: "",
+  sexe: "",
+  telephone: "",
+  email: "",
+  adresse: "",
+  remarques: "",
+  champs: []
+});
+      sauvegarder();
+      ouvrirFiche(patients.length - 1);
+      activerEdition();
+    }
+
+  function activerEdition() {
+    if (indexActuel !== null) {
+      enEdition = true;
+      ouvrirFicheEdition(indexActuel);
+    }
+  }
+
+  function ouvrirFicheEdition(i) {
+    const p = patients[i];
+    document.getElementById("listeView").classList.add("hidden");
+    const div = document.getElementById("ficheView");
+    div.classList.remove("hidden");
+
+    div.innerHTML = `
+  <div class="fiche-wrapper">
+    <div class="card">
+      <h2>✏️ Édition du patient</h2>
+      <div class="form-group"><label>Nom</label><input id="inputNom" type="text" value="${p.nom}" required></div>
+      <div class="form-group"><label>Prénom</label><input id="inputPrenom" type="text" value="${p.prenom}" required></div>
+      <div class="form-group"><label>Date de naissance</label><input id="inputNaissance" type="date" value="${p.dateNaissance}" required></div>
+      <div class="form-group"><label>Sexe</label>
+        <select id="inputSexe">
+          <option value="">---</option>
+          <option value="M" ${p.sexe === "M" ? "selected" : ""}>M</option>
+          <option value="Mme" ${p.sexe === "Mme" ? "selected" : ""}>Mme</option>
+          <option value="L'enfant" ${p.sexe === "L'enfant" ? "selected" : ""}>L'enfant</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Téléphone</label><input id="inputTelephone" type="tel" value="${p.telephone}"></div>
+      <div class="form-group"><label>Email</label><input id="inputEmail" type="email" value="${p.email || ''}"></div>
+	  <div class="form-group"><label>Adresse</label><textarea id="inputAdresse">${p.adresse}</textarea></div>
+      <div class="form-group"><label>Remarques</label><textarea id="inputRemarques">${p.remarques}</textarea></div>
+      <button class="btn btn-green" onclick="validerEdition()">✔️ Valider</button>
+      <button class="btn btn-red" onclick="annulerEdition()">❌ Annuler</button>
+    </div>
+  </div>
+`;
+}
+
+  function validerEdition() {
+    const p = patients[indexActuel];
+    p.nom = document.getElementById("inputNom").value.trim() || " ";
+    p.prenom = document.getElementById("inputPrenom").value.trim() || " ";
+    p.dateNaissance = document.getElementById("inputNaissance").value;
+    p.sexe = document.getElementById("inputSexe").value;
+    p.telephone = document.getElementById("inputTelephone").value.trim();
+	p.email = document.getElementById("inputEmail").value.trim();
+    p.adresse = document.getElementById("inputAdresse").value.trim();
+    p.remarques = document.getElementById("inputRemarques").value.trim();
+    enEdition = false;
+    sauvegarder().then(() => ouvrirFiche(indexActuel));
+	window.validerEdition = validerEdition;
+
+  }
+
+  function annulerEdition() {
+  const p = patients[indexActuel];
+
+  const estNouveau = !p.id && !p.nom && !p.prenom && !p.dateNaissance;
+
+  if (estNouveau) {
+    patients.splice(indexActuel, 1);
+    indexActuel = null;
+    enEdition = false;
+    retourListe();
+  } else {
+    enEdition = false;
+    ouvrirFiche(indexActuel);
+  }
+}
+
+
+  function supprimerPatient() {
+    if (indexActuel !== null && confirm("Confirmez-vous la suppression du patient ?")) {
+      supprimerPatientFirestore(indexActuel).then(() => {
+        patients.splice(indexActuel, 1);
+        indexActuel = null;
+        retourListe();
+      });
+    }
+  }
+
+  function ouvrirConsultation() {
+    if (indexActuel === null) return alert("Aucun patient sélectionné");
+    indexConsultationEnCours = (patients[indexActuel].consultations || []).length;
+    if (!patients[indexActuel].consultations) patients[indexActuel].consultations = [];
+    // Ajout d'une nouvelle consultation vide
+    patients[indexActuel].consultations.push({
+      date: new Date().toISOString().slice(0, 10),
+      motif: "",
+      poids: "",
+      taille: "",
+      tension: "",
+      temperature: "",
+      observations: ""
+    });
+    ouvrirFicheConsultation(indexConsultationEnCours);
+  }
+
+  function modifierConsultation(i) {
+    indexConsultationEnCours = i;
+    ouvrirFicheConsultation(i);
+  }
+
+  function supprimerConsultation(i) {
+    if (indexActuel === null) return;
+    if (confirm("Supprimer cette consultation ?")) {
+      patients[indexActuel].consultations.splice(i, 1);
+      sauvegarder().then(() => ouvrirFiche(indexActuel));
+    }
+  }
+
+  function ouvrirFicheConsultation(i) {
+    const c = patients[indexActuel].consultations[i];
+    const div = document.getElementById("ficheView");
+    div.classList.remove("hidden");
+    document.getElementById("listeView").classList.add("hidden");
+
+    div.innerHTML = `
+  <div class="fiche-wrapper">
+    <div class="card">
+      <h2>🩺 Consultation - ${patients[indexActuel].nom} ${patients[indexActuel].prenom}</h2>
+      <div class="form-group"><label>Date</label><input type="date" id="consultDate" value="${c.date}" required></div>
+      <div class="form-group"><label>Motif</label><input type="text" id="consultMotif" value="${c.motif}" required></div>
+      <div class="form-group"><label>Poids</label><input type="number" step="0.1" id="consultPoids" value="${c.poids}"></div>
+      <div class="form-group"><label>Taille</label><input type="number" step="0.1" id="consultTaille" value="${c.taille}"></div>
+      <div class="form-group"><label>Tension</label><input type="text" id="consultTension" value="${c.tension}"></div>
+      <div class="form-group"><label>Température</label><input type="number" step="0.1" id="consultTemperature" value="${c.temperature}"></div>
+      <div class="form-group"><label>Observations</label><textarea id="consultObservations">${c.observations}</textarea></div>
+      <button class="btn btn-green" onclick="cloturerConsultation()">✔️ Clôturer</button>
+      <button class="btn btn-red" onclick="annulerConsultation()">❌ Annuler</button>
+    </div>
+  </div>
+`;
+}
+
+  function cloturerConsultation() {
+    const c = patients[indexActuel].consultations[indexConsultationEnCours];
+    c.date = document.getElementById("consultDate").value;
+    c.motif = document.getElementById("consultMotif").value.trim();
+    c.poids = document.getElementById("consultPoids").value;
+    c.taille = document.getElementById("consultTaille").value;
+    c.tension = document.getElementById("consultTension").value.trim();
+    c.temperature = document.getElementById("consultTemperature").value;
+    c.observations = document.getElementById("consultObservations").value.trim();
+
+    sauvegarder().then(() => ouvrirFiche(indexActuel));
+  }
+
+  function annulerConsultation() {
+    if (indexConsultationEnCours !== null) {
+      // Suppression si nouvelle consultation abandonnée
+      if (indexConsultationEnCours === patients[indexActuel].consultations.length - 1 &&
+          patients[indexActuel].consultations[indexConsultationEnCours].motif === "" &&
+          patients[indexActuel].consultations[indexConsultationEnCours].observations === "") {
+        patients[indexActuel].consultations.pop();
+      }
+      indexConsultationEnCours = null;
+      ouvrirFiche(indexActuel);
+    }
+  }
+    function ouvrirOrdonnancier() {
+      if (typeof indexActuel !== "undefined" && patients && patients[indexActuel]) {
+        const idPatient = patients[indexActuel].id;
+        window.location.href = `Ordonnancier.html?id=${encodeURIComponent(idPatient)}`;
+      } else {
+        alert("❌ Aucun patient sélectionné pour l'ordonnancier.");
+      }
+    }
+function ouvrirCertificat() {
+  if (typeof indexActuel !== "undefined" && patients && patients[indexActuel]) {
+    const idPatient = patients[indexActuel].id;
+    window.location.href = `Certificat médical.html?id=${encodeURIComponent(idPatient)}`;
+  } else {
+    alert("❌ Aucun patient sélectionné pour le certificat.");
+  }
+}
+
+function ouvrirFacturation() {
+  if (typeof indexActuel !== "undefined" && patients && patients[indexActuel]) {
+    const idPatient = patients[indexActuel].id;
+    window.location.href = `Facturation.html?id=${encodeURIComponent(idPatient)}`;
+  } else {
+    alert("❌ Aucun patient sélectionné pour la facturation.");
+  }
+}
+
+function formatDateFR(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("fr-FR");
+}
+async function sauvegarder() {
+  const p = patients[indexActuel];
+  if (p.id) {
+    // Mise à jour si l'ID existe
+    await db.collection("patients").doc(p.id).set(p);
+  } else {
+    // Ajout si l'ID est absent
+    const docRef = await db.collection("patients").add(p);
+    p.id = docRef.id;
+  }
+}
+
+async function supprimerPatientFirestore(index) {
+  const p = patients[index];
+  if (p && p.id) {
+    await db.collection("patients").doc(p.id).delete();
+  }
+}
+
+    chargerPatients();
+  </script>
+</body>
+</html>
